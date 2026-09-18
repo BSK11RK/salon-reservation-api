@@ -6,7 +6,9 @@ from app.models.staff import Staff
 from app.models.menu import Menu
 from app.models.customer import Customer
 from app.models.reservation import Reservation
+
 from app.routers.salons import router as salom_router
+from app.routers.staffs import router as staff_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -15,3 +17,4 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.include_router(salom_router)
+app.include_router(staff_router)
