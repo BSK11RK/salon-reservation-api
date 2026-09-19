@@ -6,7 +6,17 @@ from app.models.customer import Customer
 from app.models.menu import Menu
 from app.models.reservation import Reservation
 from app.models.staff import Staff
-from app.schemas.reservation import ReservationCreate
+from app.schemas.reservation import ReservationCreate, ReservationUpdate
+
+
+# GET
+def get_reservations(db: Session):
+    return db.query(Reservation).all()
+
+
+# GET_ID
+def get_reservation(db: Session, reservation_id: int):
+    return db.query(Reservation, reservation_id)
 
 
 # POST
@@ -54,3 +64,58 @@ def create_reservation(db: Session, reservation_data: ReservationCreate):
     db.refresh(new_reservation)
     
     return new_reservation
+
+
+# PATCH
+def update_reservation(
+    db: Session,
+    reservation_id: int,
+    reservation_data: ReservationUpdate
+):
+    reservation = db.get(Reservation, reservation_id)
+    
+    if reservation is None:
+        return "reservation_not_found"
+    
+    update_data = reservation_data.model_dump(exclude_unset=True)
+    
+    if "start_at" in update_data:
+        new_start_at = update_data["start_at"]
+        
+        menu = db.get(Menu, reservation.menu_id)
+        
+        if menu is None:
+            return "menu_not_found"
+        
+        new_end_at = new_start_at + timedelta(minutes=menu.duration_minutes)
+        
+        overlapping_reservation = db.query(Reservation).filter(
+            Reservation.staff_id == reservation.staff_id,
+            Reservation.id != reservation.id,
+            Reservation.start_at < new_end_at,
+            Reservation.end_at > new_start_at
+        ).first()
+        
+        if overlapping_reservation is not None:
+            return "time_conflict"
+        
+        reservation.start_at = new_start_at
+        reservation.end_at = new_end_at
+        
+    db.commit()
+    db.refresh(reservation)
+    
+    return reservation
+
+
+# DELETE
+def delete_reservation(db: Session, reservation_id: int):
+    reservation = db.get(Reservation, reservation_id)
+    
+    if reservation is None:
+        return None
+    
+    db.delete(reservation)
+    db.commit()
+    
+    return reservation
