@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal, get_db
-from app.schemas.reservation import ReservationCreate, ReservationUpdate
+from app.schemas.reservation import (
+    ReservationCreate, 
+    ReservationUpdate,
+    ReservationResponse
+)
 from app.services import reservation as reservation_service
 
 
@@ -10,13 +14,13 @@ router = APIRouter(prefix="/reservations", tags=["reservations"])
 
 
 # GET
-@router.get("/")
+@router.get("/", response_model=list[ReservationResponse])
 def get_reservations(db: Session = Depends(get_db)):
     return reservation_service.get_reservations(db)
 
 
 # GET_ID
-@router.get("/{reservation_id}")
+@router.get("/{reservation_id}", response_model=ReservationResponse)
 def get_reservation(
     reservation_id: int,
     db: Session = Depends(get_db)
@@ -30,7 +34,7 @@ def get_reservation(
 
 
 # POST
-@router.post("/")
+@router.post("/", response_model=ReservationResponse)
 def create_reservation(
     reservation_data: ReservationCreate, 
     db: Session = Depends(get_db)
@@ -59,7 +63,7 @@ def create_reservation(
 
 
 # PATCH
-@router.patch("/{reservation_id}")
+@router.patch("/{reservation_id}", response_model=ReservationResponse)
 def update_reservation(
     reservation_id: int,
     reservation_data: ReservationUpdate,

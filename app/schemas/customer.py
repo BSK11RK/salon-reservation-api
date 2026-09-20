@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class CustomerCreate(BaseModel):
@@ -13,3 +13,11 @@ class CustomerUpdate(BaseModel):
         max_length=100
     )
     email: EmailStr | None = None
+    
+
+class CustomerResponse(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+
+    model_config = ConfigDict(from_attributes=True)

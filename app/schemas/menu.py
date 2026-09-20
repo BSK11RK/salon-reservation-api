@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MenuCreate(BaseModel):
@@ -13,3 +13,13 @@ class MenuUpdate(BaseModel):
     price: int | None = Field(default=None, ge=0)
     duration_minutes: int | None = Field(default=None, gt=0)
     salon_id: int | None = Field(default=None, gt=0)
+    
+    
+class MenuResponse(BaseModel):
+    id: int
+    name: str
+    price: int
+    duration_minutes: int
+    salon_id: int
+
+    model_config = ConfigDict(from_attributes=True)

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReservationCreate(BaseModel):
@@ -12,3 +12,14 @@ class ReservationCreate(BaseModel):
     
 class ReservationUpdate(BaseModel):
     start_at: datetime | None = None
+    
+    
+class ReservationResponse(BaseModel):
+    id: int
+    customer_id: int
+    staff_id: int
+    menu_id: int
+    start_at: datetime
+    end_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)

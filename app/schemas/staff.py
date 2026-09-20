@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class StaffCreate(BaseModel):
@@ -9,3 +9,11 @@ class StaffCreate(BaseModel):
 class StaffUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     salon_id: int | None = Field(default=None, gt=0)
+    
+    
+class StaffResponse(BaseModel):
+    id: int
+    name: str
+    salon_id: int
+    
+    model_config = ConfigDict(from_attributes=True)
