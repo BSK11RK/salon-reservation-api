@@ -2,6 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.customer import CustomerResponse
+from app.schemas.menu import MenuResponse
+from app.schemas.staff import StaffResponse
+
 
 class ReservationCreate(BaseModel):
     customer_id: int = Field(gt=0)
@@ -16,9 +20,9 @@ class ReservationUpdate(BaseModel):
     
 class ReservationResponse(BaseModel):
     id: int
-    customer_id: int
-    staff_id: int
-    menu_id: int
+    customer: CustomerResponse
+    staff: StaffResponse
+    menu: MenuResponse
     start_at: datetime
     end_at: datetime
     

@@ -25,7 +25,7 @@ def get_reservation(
     reservation_id: int,
     db: Session = Depends(get_db)
 ):
-    reservation = reservation_service.get_reservations(db, reservation_id)
+    reservation = reservation_service.get_reservation(db, reservation_id)
     
     if reservation is None:
         raise HTTPException(status_code=404, detail="Reservation not found")

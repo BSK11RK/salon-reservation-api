@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.customer import Customer
 from app.models.menu import Menu
@@ -11,12 +11,29 @@ from app.schemas.reservation import ReservationCreate, ReservationUpdate
 
 # GET
 def get_reservations(db: Session):
-    return db.query(Reservation).all()
+    return (
+    db.query(Reservation)
+    .options(
+        joinedload(Reservation.customer),
+        joinedload(Reservation.staff),
+        joinedload(Reservation.menu),
+    )
+    .all()
+)
 
 
 # GET_ID
 def get_reservation(db: Session, reservation_id: int):
-    return db.query(Reservation, reservation_id)
+    return (
+        db.query(Reservation)
+        .options(
+            joinedload(Reservation.customer),
+            joinedload(Reservation.staff),
+            joinedload(Reservation.menu),
+        )
+        .filter(Reservation.id == reservation_id)
+        .first()
+    )
 
 
 # POST
