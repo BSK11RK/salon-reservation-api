@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal, get_db
+from app.database import get_db
 from app.schemas.menu import MenuCreate, MenuUpdate
 from app.services import menu as menu_service
 

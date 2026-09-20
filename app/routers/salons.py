@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal, get_db
+from app.database import get_db
 from app.schemas.salon import SalonCreate, SalonUpdate
 from app.services import salon as salon_service
 

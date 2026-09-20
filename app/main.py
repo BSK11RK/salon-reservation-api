@@ -7,12 +7,14 @@ from app.models.staff import Staff
 from app.models.menu import Menu
 from app.models.customer import Customer
 from app.models.reservation import Reservation
+from app.models.user import User
 
 from app.routers.salons import router as salom_router
 from app.routers.staffs import router as staff_router
 from app.routers.menus import router as menu_router
 from app.routers.customers import router as customer_router
 from app.routers.reservations import router as reservation_router
+from app.routers.users import router as user_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -25,3 +27,4 @@ app.include_router(staff_router)
 app.include_router(menu_router)
 app.include_router(customer_router)
 app.include_router(reservation_router)
+app.include_router(user_router)
