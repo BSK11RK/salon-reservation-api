@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.customer import Customer
+from app.models.user import User
 from app.schemas.customer import CustomerCreate, CustomerUpdate
 
 
@@ -16,16 +17,21 @@ def get_customer(db: Session, customer_id: int):
 
 # POST
 def create_customer(db: Session, customer_data: CustomerCreate):
+    user = db.get(User, customer_data.user_id)
+    
+    if user is None:
+        return "user_not_found"
+    
     existing_customer = db.query(Customer).filter(
-        Customer.email == customer_data.email
+        Customer.user_id == customer_data.user_id
     ).first()
     
     if existing_customer is not None:
-        return None
+        return "customer_exists"
     
     new_customer = Customer(
-        name=customer_data.name,
-        email=customer_data.email
+        user_id=customer_data.user_id,
+        name=customer_data.name
     )
     
     db.add(new_customer)
@@ -47,15 +53,6 @@ def update_customer(
         return None
     
     update_data = customer_data.model_dump(exclude_unset=True)
-    
-    if "email" in update_data:
-        existing_customer = db.query(Customer).filter(
-            Customer.email == update_data["email"],
-            Customer.id != customer_id
-        ).first()
-        
-        if existing_customer is not None:
-            return None
         
     for key, value in update_data.items():
         setattr(customer, key, value)

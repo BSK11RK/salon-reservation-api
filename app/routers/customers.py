@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.customer import CustomerCreate, CustomerUpdate
+from app.schemas.customer import (
+    CustomerCreate, 
+    CustomerUpdate, 
+    CustomerResponse
+)
 from app.services import customer as customer_service
 
 
@@ -10,13 +14,13 @@ router = APIRouter(prefix="/customers", tags=["customers"])
 
 
 # GET
-@router.get("/")
+@router.get("/", response_model=list[CustomerResponse])
 def get_customers(db: Session = Depends(get_db)):
     return customer_service.get_customers(db)
 
 
 # GET_ID
-@router.get("/{customer_id}")
+@router.get("/{customer_id}", response_model=CustomerResponse)
 def get_customer(customer_id: int, db: Session= Depends(get_db)):
     customer = customer_service.get_customer(db, customer_id)
     
@@ -27,21 +31,24 @@ def get_customer(customer_id: int, db: Session= Depends(get_db)):
 
 
 # POST
-@router.post("/")
+@router.post("/", response_model=CustomerResponse, status_code=201)
 def create_customer(
     customer_data: CustomerCreate, 
     db: Session = Depends(get_db)
 ):
     customer = customer_service.create_customer(db, customer_data)
     
-    if customer is None:
-        raise HTTPException(status_code=404, detail="Email already exists")
+    if customer is "user_not_found":
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if customer == "customer_exists":
+        raise HTTPException(status_code=409, detail="Customer already exists")
     
     return customer
 
 
 # PATCH
-@router.patch("/{customer_id}")
+@router.patch("/{customer_id}", response_model=CustomerResponse)
 def update_customer(
     customer_id: int,
     customer_data: CustomerUpdate,
@@ -54,10 +61,9 @@ def update_customer(
     )
     
     if customer is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Customer not found or email already exists"
-        )
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    return customer
         
 
 # DELETE
