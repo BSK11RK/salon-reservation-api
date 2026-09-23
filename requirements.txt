@@ -4,3 +4,4 @@ sqlalchemy
 pydantic[email]
 pwdlib[argon2]
 alembic
+PyJWT
