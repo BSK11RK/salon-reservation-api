@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.models.salon import Salon
 from app.models.staff import Staff
+from app.models.user import User
 from app.schemas.staff import StaffCreate, StaffUpdate
 
 
@@ -17,12 +18,25 @@ def get_staff(db: Session, staff_id: int):
 
 # POST
 def create_staff(db: Session, staff_data: StaffCreate):
+    user = db.get(User, staff_data.user_id)
+    
+    if user is None:
+        return "user_not_found"
+    
+    existing_staff = db.query(Staff).filter(
+        Staff.user_id == staff_data.user_id
+    ).first()
+    
+    if existing_staff is not None:
+        return "staff_exists"
+    
     salon = db.get(Salon, staff_data.salon_id)
     
     if salon is None:
-        return None
+        return "salon_not_found"
     
     new_staff = Staff(
+        user_id=staff_data.user_id,
         name=staff_data.name,
         salon_id=staff_data.salon_id
     )
@@ -46,6 +60,12 @@ def update_staff(
         return None
     
     update_data = staff_data.model_dump(exclude_unset=True)
+    
+    if "salon_id" is update_data:
+        salon = db.get(Salon, update_data["salon_id"])
+        
+        if salon is None:
+            return "salon_not_found"
     
     for key, value in update_data.items():
         setattr(staff, key, value)

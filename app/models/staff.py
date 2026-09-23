@@ -8,17 +8,24 @@ from app.database import Base
 if TYPE_CHECKING:
     from app.models.reservation import Reservation
     from app.models.salon import Salon
+    from app.models.user import User
 
 
 class Staff(Base):
     __tablename__ = "staffs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        unique=True
+    )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     salon_id: Mapped[int] = mapped_column(
         ForeignKey("salons.id"),
         nullable=False
     )
+    user: Mapped["User"] = relationship(back_populates="staff")
     salon: Mapped["Salon"] = relationship(back_populates="staffs")
     reservations: Mapped[list["Reservation"]] = relationship(
         back_populates="staff"

@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class StaffCreate(BaseModel):
+    user_id: int = Field(gt=0)
     name: str = Field(min_length=1, max_length=100)
     salon_id: int = Field(gt=0)
     
@@ -13,6 +14,7 @@ class StaffUpdate(BaseModel):
     
 class StaffResponse(BaseModel):
     id: int
+    user_id: int
     name: str
     salon_id: int
     

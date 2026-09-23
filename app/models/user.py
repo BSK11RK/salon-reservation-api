@@ -8,6 +8,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.models.customer import Customer
+    from app.models.staff import Staff
 
 
 class User(Base):
@@ -29,6 +30,10 @@ class User(Base):
     )
     customer: Mapped["Customer"] = relationship(
         "Customer",
+        back_populates="user",
+        uselist=False
+    )
+    staff: Mapped["Staff"] = relationship(
         back_populates="user",
         uselist=False
     )

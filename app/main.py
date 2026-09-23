@@ -22,9 +22,9 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+app.include_router(user_router)
 app.include_router(salom_router)
-app.include_router(staff_router)
 app.include_router(menu_router)
+app.include_router(staff_router)
 app.include_router(customer_router)
 app.include_router(reservation_router)
-app.include_router(user_router)
