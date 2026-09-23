@@ -15,6 +15,7 @@ from app.routers.menus import router as menu_router
 from app.routers.customers import router as customer_router
 from app.routers.reservations import router as reservation_router
 from app.routers.users import router as user_router
+from app.routers.auth import router as auth_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -23,6 +24,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.include_router(user_router)
+app.include_router(auth_router)
 app.include_router(salom_router)
 app.include_router(menu_router)
 app.include_router(staff_router)
