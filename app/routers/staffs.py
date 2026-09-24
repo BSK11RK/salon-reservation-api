@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.user import User
+from app.security import get_current_user
 from app.schemas.staff import StaffCreate, StaffUpdate, StaffResponse
 from app.services import staff as staff_service
 
@@ -13,6 +15,23 @@ router = APIRouter(prefix="/staffs", tags=["Staffs"])
 @router.get("/", response_model=list[StaffResponse])
 def get_staffs(db: Session = Depends(get_db)):
     return staff_service.get_staffs(db)
+
+
+# GET_ME
+@router.get("/me", response_model=StaffResponse)
+def get_my_staff(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    staff = staff_service.get_staff_by_user_id(db, current_user.id)
+    
+    if staff is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Staff profile not found"
+        )
+        
+    return staff
 
 
 # GET_ID

@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.user import User
+from app.security import get_current_user
 from app.schemas.customer import (
     CustomerCreate, 
     CustomerUpdate, 
@@ -17,6 +19,23 @@ router = APIRouter(prefix="/customers", tags=["customers"])
 @router.get("/", response_model=list[CustomerResponse])
 def get_customers(db: Session = Depends(get_db)):
     return customer_service.get_customers(db)
+
+
+# GET_ME
+@router.get("/me", response_model=CustomerResponse)
+def get_my_customer(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    customer = customer_service.get_customer_by_user_id(db, current_user.id)
+    
+    if customer is None:
+        raise HTTPException(
+            status_code=404, 
+            detail="Customer profile not found"
+        )
+    
+    return customer
 
 
 # GET_ID

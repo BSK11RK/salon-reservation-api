@@ -11,6 +11,13 @@ def get_staffs(db: Session):
     return db.query(Staff).all()
 
 
+# GET_ME
+def get_staff_by_user_id(db: Session, user_id: int):
+    return db.query(Staff).filter(
+        Staff.user_id == user_id
+    ).first()
+
+
 # GET_ID
 def get_staff(db: Session, staff_id: int):
     return db.get(Staff, staff_id)

@@ -10,6 +10,13 @@ def get_customers(db: Session):
     return db.query(Customer).all()
 
 
+# GET_ME
+def get_customer_by_user_id(db: Session, user_id: int):
+    return db.query(Customer).filter(
+        Customer.user_id == user_id
+    ).first()
+
+
 # GET_ID
 def get_customer(db: Session, customer_id: int):
     return db.get(Customer, customer_id)
