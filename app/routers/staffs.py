@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.security import get_current_user
+from app.security import require_staff
 from app.schemas.staff import StaffCreate, StaffUpdate, StaffResponse
 from app.services import staff as staff_service
 
@@ -20,7 +20,7 @@ def get_staffs(db: Session = Depends(get_db)):
 # GET_ME
 @router.get("/me", response_model=StaffResponse)
 def get_my_staff(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_staff),
     db: Session = Depends(get_db)
 ):
     staff = staff_service.get_staff_by_user_id(db, current_user.id)

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.security import get_current_user
+from app.security import require_customer
 from app.schemas.customer import (
     CustomerCreate, 
     CustomerUpdate, 
@@ -24,7 +24,7 @@ def get_customers(db: Session = Depends(get_db)):
 # GET_ME
 @router.get("/me", response_model=CustomerResponse)
 def get_my_customer(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_customer),
     db: Session = Depends(get_db)
 ):
     customer = customer_service.get_customer_by_user_id(db, current_user.id)
@@ -57,7 +57,7 @@ def create_customer(
 ):
     customer = customer_service.create_customer(db, customer_data)
     
-    if customer is "user_not_found":
+    if customer == "user_not_found":
         raise HTTPException(status_code=404, detail="User not found")
     
     if customer == "customer_exists":

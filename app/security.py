@@ -71,3 +71,42 @@ def get_current_user(
         raise credentials_exception
     
     return user
+
+
+# Customer
+def require_customer(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if current_user.role != "customer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Customer role required"
+        )
+        
+    return current_user
+
+
+# Staff
+def require_staff(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if current_user.role != "staff":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff role required"
+        )
+
+    return current_user
+
+
+# Admin
+def require_admin(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required"
+        )
+
+    return current_user
