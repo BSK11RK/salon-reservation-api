@@ -151,3 +151,17 @@ def delete_reservation(
     db.commit()
 
     return reservation
+
+
+# STAFF_RESERVATION_SERVICE
+def get_reservations_by_staff(
+    db: Session,
+    staff_id: int,
+):
+    return db.query(Reservation).options(
+            joinedload(Reservation.customer),
+            joinedload(Reservation.staff),
+            joinedload(Reservation.menu)
+        ).filter(
+            Reservation.staff_id == staff_id
+        ).all()

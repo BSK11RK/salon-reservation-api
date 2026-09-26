@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.security import require_customer
+from app.security import require_customer, require_staff
 from app.schemas.reservation import (
     ReservationCreate, 
     ReservationUpdate,
@@ -11,6 +11,8 @@ from app.schemas.reservation import (
 )
 from app.services import reservation as reservation_service
 from app.services.customer import get_customer_by_user_id
+from app.services.staff import get_staff_by_user_id
+
 
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
@@ -31,6 +33,23 @@ def get_reservations(
         )
     
     return reservation_service.get_reservations(db, customer.id)
+
+
+# STAFF_ME
+@router.get("/staff/me", response_model=list[ReservationResponse])
+def get_my_staff_reservations(
+    current_user: User = Depends(require_staff),
+    db: Session = Depends(get_db)
+):
+    staff = get_staff_by_user_id(db, current_user.id)
+    
+    if staff is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Staff profile not found"
+        )
+        
+    return reservation_service.get_reservations_by_staff(db, staff.id)
 
 
 # GET_ID
