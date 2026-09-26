@@ -10,30 +10,30 @@ from app.schemas.reservation import ReservationCreate, ReservationUpdate
 
 
 # GET
-def get_reservations(db: Session):
-    return (
-    db.query(Reservation)
-    .options(
+def get_reservations(db: Session, customer_id: int):
+    return db.query(Reservation).options(
         joinedload(Reservation.customer),
         joinedload(Reservation.staff),
-        joinedload(Reservation.menu),
-    )
-    .all()
-)
+        joinedload(Reservation.menu)
+    ).filter(
+        Reservation.customer_id == customer_id
+    ).all()
 
 
 # GET_ID
-def get_reservation(db: Session, reservation_id: int):
-    return (
-        db.query(Reservation)
-        .options(
-            joinedload(Reservation.customer),
-            joinedload(Reservation.staff),
-            joinedload(Reservation.menu),
-        )
-        .filter(Reservation.id == reservation_id)
-        .first()
-    )
+def get_reservation(
+    db: Session, 
+    reservation_id: int,
+    customer_id: int
+):
+    return db.query(Reservation).options(
+        joinedload(Reservation.customer),
+        joinedload(Reservation.staff),
+        joinedload(Reservation.menu)
+    ).filter(
+        Reservation.id == reservation_id,
+        Reservation.customer_id == customer_id
+    ).first()
 
 
 # POST
@@ -91,9 +91,13 @@ def create_reservation(
 def update_reservation(
     db: Session,
     reservation_id: int,
-    reservation_data: ReservationUpdate
+    reservation_data: ReservationUpdate,
+    customer_id: int
 ):
-    reservation = db.get(Reservation, reservation_id)
+    reservation = db.query(Reservation).filter(
+            Reservation.id == reservation_id,
+            Reservation.customer_id == customer_id
+        ).first()
     
     if reservation is None:
         return "reservation_not_found"
@@ -130,13 +134,20 @@ def update_reservation(
 
 
 # DELETE
-def delete_reservation(db: Session, reservation_id: int):
-    reservation = db.get(Reservation, reservation_id)
-    
+def delete_reservation(
+    db: Session,
+    reservation_id: int,
+    customer_id: int
+):
+    reservation = db.query(Reservation).filter(
+            Reservation.id == reservation_id,
+            Reservation.customer_id == customer_id
+        ).first()
+
     if reservation is None:
         return None
-    
+
     db.delete(reservation)
     db.commit()
-    
+
     return reservation

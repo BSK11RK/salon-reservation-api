@@ -18,17 +18,41 @@ router = APIRouter(prefix="/reservations", tags=["reservations"])
 
 # GET
 @router.get("/", response_model=list[ReservationResponse])
-def get_reservations(db: Session = Depends(get_db)):
-    return reservation_service.get_reservations(db)
+def get_reservations(
+    current_user: User = Depends(require_customer),
+    db: Session = Depends(get_db)
+):
+    customer = get_customer_by_user_id(db, current_user.id)
+    
+    if customer is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Customer profile not found"
+        )
+    
+    return reservation_service.get_reservations(db, customer.id)
 
 
 # GET_ID
 @router.get("/{reservation_id}", response_model=ReservationResponse)
 def get_reservation(
     reservation_id: int,
+    current_user: User = Depends(require_customer),
     db: Session = Depends(get_db)
 ):
-    reservation = reservation_service.get_reservation(db, reservation_id)
+    customer = get_customer_by_user_id(db, current_user.id)
+    
+    if customer is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Customer profile not found"
+        )
+    
+    reservation = reservation_service.get_reservation(
+        db, 
+        reservation_id,
+        customer.id
+    )
     
     if reservation is None:
         raise HTTPException(status_code=404, detail="Reservation not found")
@@ -50,7 +74,6 @@ def create_reservation(
             status_code=404, 
             detail="Customer profile not found"
         )
-
     
     reservation = reservation_service.create_reservation(
         db, 
@@ -78,12 +101,22 @@ def create_reservation(
 def update_reservation(
     reservation_id: int,
     reservation_data: ReservationUpdate,
+    current_user: User = Depends(require_customer),
     db: Session = Depends(get_db)
 ):
+    customer = get_customer_by_user_id(db, current_user.id)
+    
+    if customer is None:
+        raise HTTPException(
+            status_code=404, 
+            detail="Customer profile not found"
+        )
+    
     reservation = reservation_service.update_reservation(
         db,
         reservation_id,
-        reservation_data
+        reservation_data,
+        customer.id
     )
     
     if reservation == "reservation_not_found":
@@ -105,11 +138,21 @@ def update_reservation(
 @router.delete("/{reservation_id}")
 def delete_reservation(
     reservation_id: int,
+    current_user: User = Depends(require_customer),
     db: Session = Depends(get_db)
 ):
+    customer = get_customer_by_user_id(db, current_user.id)
+
+    if customer is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Customer profile not found"
+        )
+    
     reservation = reservation_service.delete_reservation(
         db,
-        reservation_id
+        reservation_id,
+        customer.id
     )
     
     if reservation is None:
