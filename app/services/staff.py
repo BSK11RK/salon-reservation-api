@@ -42,6 +42,8 @@ def create_staff(db: Session, staff_data: StaffCreate):
     if salon is None:
         return "salon_not_found"
     
+    user.role = "staff"
+    
     new_staff = Staff(
         user_id=staff_data.user_id,
         name=staff_data.name,
