@@ -37,8 +37,12 @@ def get_reservation(db: Session, reservation_id: int):
 
 
 # POST
-def create_reservation(db: Session, reservation_data: ReservationCreate):
-    customer = db.get(Customer, reservation_data.customer_id)
+def create_reservation(
+    db: Session, 
+    customer_id: int,
+    reservation_data: ReservationCreate
+):
+    customer = db.get(Customer, customer_id)
     
     if customer is None:
         return "customer_not_found"
@@ -69,7 +73,7 @@ def create_reservation(db: Session, reservation_data: ReservationCreate):
         return "time_conflict"
     
     new_reservation = Reservation(
-        customer_id=reservation_data.customer_id,
+        customer_id=customer_id,
         staff_id=reservation_data.staff_id,
         menu_id=reservation_data.menu_id,
         start_at=reservation_data.start_at,

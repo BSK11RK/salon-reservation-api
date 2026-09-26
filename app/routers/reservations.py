@@ -2,12 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.user import User
+from app.security import require_customer
 from app.schemas.reservation import (
     ReservationCreate, 
     ReservationUpdate,
     ReservationResponse
 )
 from app.services import reservation as reservation_service
+from app.services.customer import get_customer_by_user_id
 
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
@@ -37,15 +40,23 @@ def get_reservation(
 @router.post("/", response_model=ReservationResponse)
 def create_reservation(
     reservation_data: ReservationCreate, 
+    current_user: User = Depends(require_customer),
     db: Session = Depends(get_db)
 ):
+    customer = get_customer_by_user_id(db, current_user.id)
+
+    if customer is None:
+        raise HTTPException(
+            status_code=404, 
+            detail="Customer profile not found"
+        )
+
+    
     reservation = reservation_service.create_reservation(
         db, 
+        customer.id,
         reservation_data
     )
-
-    if reservation == "customer_not_found":
-        raise HTTPException(status_code=404, detail="Customer not found")
 
     if reservation == "staff_not_found":
         raise HTTPException(status_code=404, detail="Staff not found")
@@ -83,7 +94,7 @@ def update_reservation(
     
     if reservation == "time_conflict":
         raise HTTPException(
-            status_code=404,
+            status_code=409,
             detail="Staff is already reserved at this time"
         )
         

@@ -8,7 +8,6 @@ from app.schemas.staff import StaffResponse
 
 
 class ReservationCreate(BaseModel):
-    customer_id: int = Field(gt=0)
     staff_id: int = Field(gt=0)
     menu_id: int = Field(gt=0)
     start_at: datetime
