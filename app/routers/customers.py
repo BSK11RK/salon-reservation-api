@@ -9,6 +9,7 @@ from app.schemas.customer import (
     CustomerUpdate, 
     CustomerResponse
 )
+from app.security import require_customer
 from app.services import customer as customer_service
 
 
@@ -17,7 +18,10 @@ router = APIRouter(prefix="/customers", tags=["customers"])
 
 # GET
 @router.get("/", response_model=list[CustomerResponse])
-def get_customers(db: Session = Depends(get_db)):
+def get_customers(
+    current_user: User = Depends(require_customer),
+    db: Session = Depends(get_db)
+):
     return customer_service.get_customers(db)
 
 
@@ -40,11 +44,21 @@ def get_my_customer(
 
 # GET_ID
 @router.get("/{customer_id}", response_model=CustomerResponse)
-def get_customer(customer_id: int, db: Session= Depends(get_db)):
+def get_customer(
+    customer_id: int, 
+    current_user: User = Depends(require_customer),
+    db: Session= Depends(get_db)
+):
     customer = customer_service.get_customer(db, customer_id)
     
     if customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
+    
+    if customer.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only access your own customer profile"
+        )
     
     return customer
 
@@ -71,26 +85,47 @@ def create_customer(
 def update_customer(
     customer_id: int,
     customer_data: CustomerUpdate,
+    current_user: User = Depends(require_customer),
     db: Session = Depends(get_db)
 ):
+    customer = customer_service.get_customer(db, customer_id)
+    
+    if customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    if customer.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only update your own customer profile"
+        )
+    
     customer = customer_service.update_customer(
         db, 
         customer_id, 
         customer_data
     )
     
-    if customer is None:
-        raise HTTPException(status_code=404, detail="Customer not found")
-    
     return customer
         
 
 # DELETE
 @router.delete("/{customer_id}")
-def delete_customer(customer_id: int, db: Session = Depends(get_db)):
+def delete_customer(
+    customer_id: int, 
+    current_user: User = Depends(require_customer),
+    db: Session = Depends(get_db)
+):
     customer = customer_service.delete_customer(db, customer_id)
     
     if customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
+    
+    if customer.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only delete your own customer profile"
+        )
+        
+    customer_service.delete_customer(db, customer_id)
     
     return {"message": "Customer deleted successfully"}

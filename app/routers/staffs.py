@@ -123,6 +123,6 @@ def delete_staff(
             detail="You can only delete your own staff profile"
         )
     
-    staff = staff_service.delete_staff(db, staff_id)
+    staff_service.delete_staff(db, staff_id)
     
     return {"message": "Staff deleted successfully"}
