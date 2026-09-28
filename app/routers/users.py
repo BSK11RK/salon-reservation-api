@@ -24,12 +24,22 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 
 # GET_ID
-@router.get("/{user_id}")
-def get_user(user_id: int, db: Session = Depends(get_db)):
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(
+    user_id: int, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     user = user_service.get_user(db, user_id)
     
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only access your own user profile"
+        )
     
     return user
 
@@ -50,12 +60,21 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
 def update_user(
     user_id: int,
     user_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    user = user_service.update_user(db, user_id, user_data)
+    user = user_service.get_user(db, user_id)
     
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only update your own user profile"
+        )
+    
+    user = user_service.update_user(db, user_id, user_data)
     
     if user == "email_exists":
         raise HTTPException(status_code=409, detail="Email already exists")
@@ -65,10 +84,22 @@ def update_user(
 
 # DELETE
 @router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user = user_service.delete_user(db, user_id)
-    
+def delete_user(
+    user_id: int, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = user_service.get_user(db, user_id)
+
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+
+    if user.id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only delete your own user profile"
+        )
+    
+    user = user_service.delete_user(db, user_id)
     
     return {"message": "User deleted successfully"}
