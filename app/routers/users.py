@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.services import user as user_service
-from app.security import get_current_user
+from app.security import get_current_user, require_admin
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -13,7 +13,10 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 # GET
 @router.get("/", response_model=list[UserResponse])
-def get_user(db: Session = Depends(get_db)):
+def get_user(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
     return user_service.get_users(db)
 
 
