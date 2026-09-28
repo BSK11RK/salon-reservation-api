@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.salon import SalonCreate, SalonUpdate
+from app.schemas.salon import SalonCreate, SalonUpdate, SalonResponse
 from app.services import salon as salon_service
 
 
@@ -10,13 +10,13 @@ router = APIRouter(prefix="/salons", tags=["Salons"])
 
 
 # GET
-@router.get("/")
+@router.get("/", response_model=list[SalonResponse])
 def get_salons(db: Session = Depends(get_db)):
     return salon_service.get_salons(db)
 
 
 # GET_ID
-@router.get("/{salon_id}")
+@router.get("/{salon_id}", response_model=SalonResponse)
 def get_salon(salon_id: int, db: Session = Depends(get_db)):
     salon = salon_service.get_salon(db, salon_id)
     
@@ -27,13 +27,13 @@ def get_salon(salon_id: int, db: Session = Depends(get_db)):
 
 
 # POST
-@router.post("/")
+@router.post("/", response_model=SalonResponse, status_code=201)
 def create_salon(salon: SalonCreate, db: Session = Depends(get_db)):
     return salon_service.create_salon(db, salon)
 
 
 # PATCH
-@router.patch("/{salon_id}")
+@router.patch("/{salon_id}", response_model=SalonResponse)
 def update_salon(
     salon_id: int,
     salon_data: SalonUpdate,

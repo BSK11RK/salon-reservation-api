@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.menu import MenuCreate, MenuUpdate
+from app.schemas.menu import MenuCreate, MenuUpdate, MenuResponse
 from app.services import menu as menu_service
 
 
@@ -10,13 +10,13 @@ router = APIRouter(prefix="/menus", tags=["menus"])
 
 
 # GET
-@router.get("/")
+@router.get("/", response_model=list[MenuResponse])
 def get_menus(db: Session = Depends(get_db)):
     return menu_service.get_menus(db)
 
 
 # GET_ID
-@router.get("/{menu_id}")
+@router.get("/{menu_id}", response_model=MenuResponse)
 def get_menu(menu_id: int, db: Session = Depends(get_db)):
     menu = menu_service.get_menu(db, menu_id)
     
@@ -27,7 +27,7 @@ def get_menu(menu_id: int, db: Session = Depends(get_db)):
 
 
 # POST
-@router.post("/")
+@router.post("/", response_model=MenuResponse, status_code=201)
 def create_menu(menu_data: MenuCreate, db: Session = Depends(get_db)):
     menu = menu_service.create_menu(db, menu_data)
     
@@ -38,7 +38,7 @@ def create_menu(menu_data: MenuCreate, db: Session = Depends(get_db)):
 
 
 # PATCH
-@router.patch("/{menu_id}")
+@router.patch("/{menu_id}", response_model=MenuResponse)
 def update_menu(
     menu_id: int,
     menu_data: MenuUpdate,
@@ -47,7 +47,10 @@ def update_menu(
     menu = menu_service.update_menu(db, menu_id, menu_data)
     
     if menu is None:
-        raise HTTPException(status_code=404, detail="Menu or Salon not found")
+        raise HTTPException(status_code=404, detail="Menu not found")
+    
+    if menu == "salon_not_found":
+        raise HTTPException(status_code=404, detail="Salon not found")
     
     return menu
 
