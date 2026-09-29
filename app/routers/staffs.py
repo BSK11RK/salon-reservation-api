@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.security import require_staff
+from app.security import require_staff, require_admin
 from app.schemas.staff import StaffCreate, StaffUpdate, StaffResponse
 from app.services import staff as staff_service
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/staffs", tags=["Staffs"])
 # GET
 @router.get("/", response_model=list[StaffResponse])
 def get_staffs(
-    current_user: User = Depends(require_staff),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     return staff_service.get_staffs(db)
@@ -41,7 +41,7 @@ def get_my_staff(
 @router.get("/{staff_id}", response_model=StaffResponse)
 def get_staff(
     staff_id: int, 
-    current_user: User = Depends(require_staff),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     staff = staff_service.get_staff(db, staff_id)
@@ -49,18 +49,16 @@ def get_staff(
     if staff is None:
         raise HTTPException(status_code=404, detail="Staff not found")
     
-    if staff.user_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only access your own staff profile"
-        )
-    
     return staff
 
 
 # POST
 @router.post("/", response_model=StaffResponse, status_code=201)
-def create_staff(staff_data: StaffCreate, db: Session = Depends(get_db)):
+def create_staff(
+    staff_data: StaffCreate, 
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
     staff = staff_service.create_staff(db, staff_data)
 
     if staff == "user_not_found":
@@ -83,19 +81,13 @@ def create_staff(staff_data: StaffCreate, db: Session = Depends(get_db)):
 def update_staff(
     staff_id: int,
     staff_data: StaffUpdate,
-    current_user: User = Depends(require_staff),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     staff = staff_service.get_staff(db, staff_id)
     
     if staff is None:
         raise HTTPException(status_code=404, detail="Staff not found")
-    
-    if staff.user_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only update your own staff profile"
-        )
     
     staff = staff_service.update_staff(db, staff_id, staff_data)
     
@@ -109,20 +101,14 @@ def update_staff(
 @router.delete("/{staff_id}")
 def delete_staff(
     staff_id: int, 
-    current_user: User = Depends(require_staff),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     staff = staff_service.get_staff(db, staff_id)
     
     if staff is None:
             raise HTTPException(status_code=404, detail="Staff not found")
-        
-    if staff.user_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only delete your own staff profile"
-        )
-    
+
     staff_service.delete_staff(db, staff_id)
     
     return {"message": "Staff deleted successfully"}
