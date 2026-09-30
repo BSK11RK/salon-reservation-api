@@ -10,7 +10,27 @@ from app.schemas.reservation import ReservationCreate, ReservationUpdate
 
 
 # GET
-def get_reservations(db: Session, customer_id: int):
+def get_reservations(db: Session):
+    return db.query(Reservation).options(
+        joinedload(Reservation.customer),
+        joinedload(Reservation.staff),
+        joinedload(Reservation.menu)
+    ).all()
+
+
+# GET_ID
+def get_reservation(db: Session, reservation_id: int):
+    return db.query(Reservation).options(
+        joinedload(Reservation.customer),
+        joinedload(Reservation.staff),
+        joinedload(Reservation.menu)
+    ).filter(
+        Reservation.id == reservation_id
+    ).first()
+
+
+# GET_BY_CUSTOMER
+def get_reservations_by_customer(db: Session, customer_id: int):
     return db.query(Reservation).options(
         joinedload(Reservation.customer),
         joinedload(Reservation.staff),
@@ -20,9 +40,9 @@ def get_reservations(db: Session, customer_id: int):
     ).all()
 
 
-# GET_ID
-def get_reservation(
-    db: Session, 
+# GET_ID_BY_CUSTOMER
+def get_reservation_by_customer(
+    db: Session,
     reservation_id: int,
     customer_id: int
 ):
@@ -38,40 +58,40 @@ def get_reservation(
 
 # POST
 def create_reservation(
-    db: Session, 
+    db: Session,
     customer_id: int,
     reservation_data: ReservationCreate
 ):
     customer = db.get(Customer, customer_id)
-    
+
     if customer is None:
         return "customer_not_found"
-    
+
     staff = db.get(Staff, reservation_data.staff_id)
-    
+
     if staff is None:
         return "staff_not_found"
-    
+
     menu = db.get(Menu, reservation_data.menu_id)
-    
+
     if menu is None:
         return "menu_not_found"
-    
+
     end_at = reservation_data.start_at + timedelta(
         minutes=menu.duration_minutes
     )
-    
-    overlapping_reservation = db.query(Reservation).filter(
-        Reservation.staff_id
-        == reservation_data.staff_id,
+
+    overlapping_reservation = db.query(
+        Reservation
+    ).filter(
+        Reservation.staff_id == reservation_data.staff_id,
         Reservation.start_at < end_at,
-        Reservation.end_at
-        > reservation_data.start_at
+        Reservation.end_at > reservation_data.start_at
     ).first()
-    
+
     if overlapping_reservation is not None:
         return "time_conflict"
-    
+
     new_reservation = Reservation(
         customer_id=customer_id,
         staff_id=reservation_data.staff_id,
@@ -79,11 +99,11 @@ def create_reservation(
         start_at=reservation_data.start_at,
         end_at=end_at
     )
-    
+
     db.add(new_reservation)
     db.commit()
     db.refresh(new_reservation)
-    
+
     return new_reservation
 
 
@@ -92,44 +112,50 @@ def update_reservation(
     db: Session,
     reservation_id: int,
     reservation_data: ReservationUpdate,
-    customer_id: int
+    customer_id: int | None = None
 ):
-    reservation = db.query(Reservation).filter(
-            Reservation.id == reservation_id,
-            Reservation.customer_id == customer_id
-        ).first()
-    
+    query = db.query(Reservation).filter(Reservation.id == reservation_id)
+
+    if customer_id is not None:
+        query = query.filter(Reservation.customer_id == customer_id)
+
+    reservation = query.first()
+
     if reservation is None:
         return "reservation_not_found"
-    
+
     update_data = reservation_data.model_dump(exclude_unset=True)
-    
+
     if "start_at" in update_data:
         new_start_at = update_data["start_at"]
-        
+
         menu = db.get(Menu, reservation.menu_id)
-        
+
         if menu is None:
             return "menu_not_found"
-        
-        new_end_at = new_start_at + timedelta(minutes=menu.duration_minutes)
-        
-        overlapping_reservation = db.query(Reservation).filter(
+
+        new_end_at = new_start_at + timedelta(
+            minutes=menu.duration_minutes
+        )
+
+        overlapping_reservation = db.query(
+            Reservation
+        ).filter(
             Reservation.staff_id == reservation.staff_id,
             Reservation.id != reservation.id,
             Reservation.start_at < new_end_at,
             Reservation.end_at > new_start_at
         ).first()
-        
+
         if overlapping_reservation is not None:
             return "time_conflict"
-        
+
         reservation.start_at = new_start_at
         reservation.end_at = new_end_at
-        
+
     db.commit()
     db.refresh(reservation)
-    
+
     return reservation
 
 
@@ -137,12 +163,14 @@ def update_reservation(
 def delete_reservation(
     db: Session,
     reservation_id: int,
-    customer_id: int
+    customer_id: int | None = None
 ):
-    reservation = db.query(Reservation).filter(
-            Reservation.id == reservation_id,
-            Reservation.customer_id == customer_id
-        ).first()
+    query = db.query(Reservation).filter(Reservation.id == reservation_id)
+
+    if customer_id is not None:
+        query = query.filter(Reservation.customer_id == customer_id)
+
+    reservation = query.first()
 
     if reservation is None:
         return None
@@ -154,14 +182,27 @@ def delete_reservation(
 
 
 # STAFF_RESERVATION_SERVICE
-def get_reservations_by_staff(
+def get_reservations_by_staff(db: Session, staff_id: int):
+    return db.query(Reservation).options(
+        joinedload(Reservation.customer),
+        joinedload(Reservation.staff),
+        joinedload(Reservation.menu)
+    ).filter(
+        Reservation.staff_id == staff_id
+    ).all()
+
+
+# STAFF_RESERVATION_BY_ID
+def get_reservation_by_staff(
     db: Session,
-    staff_id: int,
+    reservation_id: int,
+    staff_id: int
 ):
     return db.query(Reservation).options(
-            joinedload(Reservation.customer),
-            joinedload(Reservation.staff),
-            joinedload(Reservation.menu)
-        ).filter(
-            Reservation.staff_id == staff_id
-        ).all()
+        joinedload(Reservation.customer),
+        joinedload(Reservation.staff),
+        joinedload(Reservation.menu)
+    ).filter(
+        Reservation.id == reservation_id,
+        Reservation.staff_id == staff_id
+    ).first()

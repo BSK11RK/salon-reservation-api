@@ -104,7 +104,7 @@ def delete_customer(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    customer = customer_service.delete_customer(db, customer_id)
+    customer = customer_service.get_customer(db, customer_id)
     
     if customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
