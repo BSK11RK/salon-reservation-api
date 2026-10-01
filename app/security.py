@@ -6,13 +6,14 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from pwdlib import PasswordHash
 
+from app.config import settings
 from app.database import get_db
 from app.models.user import User
 
 
 password_hash = PasswordHash.recommended()
 
-SECRET_KEY = "change-this-to-a-random-secret-key"
+SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

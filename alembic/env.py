@@ -5,7 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.database import Base, DATABASE_URL
+from app.config import settings
+from app.database import Base
 
 from app.models.salon import Salon
 from app.models.staff import Staff
@@ -22,7 +23,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 
 target_metadata = Base.metadata
