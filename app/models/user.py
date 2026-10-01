@@ -33,6 +33,7 @@ class User(Base):
         nullable=False,
         default=datetime.utcnow
     )
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     customer: Mapped["Customer"] = relationship(
         back_populates="user",
         uselist=False
