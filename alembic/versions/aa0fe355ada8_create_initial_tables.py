@@ -1,8 +1,8 @@
-"""initial migration
+"""create initial tables
 
-Revision ID: 18cf578b95de
+Revision ID: aa0fe355ada8
 Revises: 
-Create Date: 2026-09-23 15:41:29.222538
+Create Date: 2026-10-04 15:17:22.295032
 
 """
 from typing import Sequence, Union
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '18cf578b95de'
+revision: str = 'aa0fe355ada8'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,6 +30,7 @@ def upgrade() -> None:
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
+    sa.Column('role', sa.String(length=20), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -78,7 +79,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_reservations_id'), 'reservations', ['id'], unique=False)
-
+    
 
 def downgrade() -> None:
     op.drop_index(op.f('ix_reservations_id'), table_name='reservations')
