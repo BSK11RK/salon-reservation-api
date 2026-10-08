@@ -8,3 +8,5 @@ PyJWT
 python-multipart
 psycopg[binary]
 python-dotenv
+pytest
+httpx
